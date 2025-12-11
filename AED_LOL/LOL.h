@@ -98,6 +98,7 @@ public:
 	// Simulation methods
 	void simulateMatchmakingSeason(int iterations);
 	void clearAllQueues(); // Clear all queues between iterations
+	void displayRoleDistribution() const; // Display role distribution for debugging
 	
 	// File operations
 	void loadPlayersFromFile(const std::string& filename);

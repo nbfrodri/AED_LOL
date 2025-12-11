@@ -73,18 +73,53 @@ bool Queue::hasPlayersForRole(char role) const
 	int roleIndex = getRoleIndex(role);
 	if (roleIndex == -1) return false;
 	
-	return !mainRolesQueue[roleIndex].empty() || !secondaryRolesQueue[roleIndex].empty();
+	bool hasMainRole = !mainRolesQueue[roleIndex].empty();
+	bool hasSecondaryRole = !secondaryRolesQueue[roleIndex].empty();
+	
+	return hasMainRole || hasSecondaryRole;
+}
+
+int Queue::getPlayersCountForRole(char role) const
+{
+	int roleIndex = getRoleIndex(role);
+	if (roleIndex == -1) return 0;
+	
+	return mainRolesQueue[roleIndex].size() + secondaryRolesQueue[roleIndex].size();
 }
 
 void Queue::removePlayerFromQueues(const Player& player)
 {
-	// We need to remove the player from all other queues where they might be present
-	// This is a complex operation as priority_queue doesn't support direct removal
-	// For simplicity, we'll implement a marking system or accept some duplicates
-	// In a production system, you'd want to use a more sophisticated data structure
+	// Remove from all main role queues
+	for (int i = 0; i < 5; ++i)
+	{
+		std::priority_queue<Player> tempQueue;
+		while (!mainRolesQueue[i].empty())
+		{
+			Player tempPlayer = mainRolesQueue[i].top();
+			mainRolesQueue[i].pop();
+			if (tempPlayer.getId() != player.getId())
+			{
+				tempQueue.push(tempPlayer);
+			}
+		}
+		mainRolesQueue[i] = tempQueue;
+	}
 	
-	// For now, this method serves as a placeholder for the logic
-	// The actual removal is handled in getPlayerForRole by popping from the queue
+	// Remove from all secondary role queues
+	for (int i = 0; i < 5; ++i)
+	{
+		std::priority_queue<Player> tempQueue;
+		while (!secondaryRolesQueue[i].empty())
+		{
+			Player tempPlayer = secondaryRolesQueue[i].top();
+			secondaryRolesQueue[i].pop();
+			if (tempPlayer.getId() != player.getId())
+			{
+				tempQueue.push(tempPlayer);
+			}
+		}
+		secondaryRolesQueue[i] = tempQueue;
+	}
 }
 
 void Queue::displayRoleQueue(char role, bool isPrimary) const

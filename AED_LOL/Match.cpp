@@ -14,6 +14,8 @@ Match::Match() : matchId(nextMatchId++), valid(false), matchRank(""), winnersGen
 
 	// Initialize winners vector but don't populate it yet
 	winners.resize(10, false);
+	// Initialize assigned roles vector
+	assignedRoles.resize(10, 'U'); // U for Unassigned
 }
 
 void Match::generateWinners()
@@ -43,21 +45,34 @@ void Match::generateWinners()
 
 bool Match::isValid() const
 {
-	return players.size() == 10 && valid;
+	bool result = players.size() == 10 && valid;
+	return result;
 }
 
 void Match::insertPlayer(Player* player)
 {
 	if (players.size() < 10)
 	{
+		// Check if player is already in the match
+		for (const auto& existingPlayer : players)
+		{
+			if (existingPlayer->getId() == player->getId())
+			{
+				return; // Don't add duplicate player
+			}
+		}
+		
 		players.push_back(player);
+		
 		if (players.size() == 10)
 		{
-			// Check if all roles are filled correctly
+			// Check if all roles are filled correctly - look at the roles they're actually playing in the match
 			std::vector<int> roleCounts(5, 0); // T, J, M, A, S
+			
 			for (const auto& p : players)
 			{
 				char primaryRole = p->getPrimaryRole();
+				
 				switch (primaryRole)
 				{
 				case 'T': roleCounts[0]++; break;
@@ -65,22 +80,94 @@ void Match::insertPlayer(Player* player)
 				case 'M': roleCounts[2]++; break;
 				case 'A': roleCounts[3]++; break;
 				case 'S': roleCounts[4]++; break;
+				default:
+					std::cout << "    WARNING: Player " << p->getUsername() << " has invalid role: " << primaryRole << "\n";
 				}
 			}
 			
 			// Check if we have exactly 2 players per role
+			std::cout << "  Role distribution in match " << matchId << ":\n";
+			char roleNames[] = {'T', 'J', 'M', 'A', 'S'};
 			bool allRolesFilled = true;
-			for (int count : roleCounts)
+			
+			for (int i = 0; i < 5; ++i)
 			{
-				if (count != 2)
+				if (roleCounts[i] == 2)
+				{
+					std::cout << " ?\n";
+				}
+				else
 				{
 					allRolesFilled = false;
-					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		std::cout << "Warning: Cannot add player to match " << matchId << " - already has 10 players" << std::endl;
+	}
+}
+
+void Match::insertPlayerWithRole(Player* player, char assignedRole)
+{
+	if (players.size() < 10)
+	{
+		// Check if player is already in the match
+		for (const auto& existingPlayer : players)
+		{
+			if (existingPlayer->getId() == player->getId())
+			{
+				std::cout << "Warning: Player " << player->getUsername() << " (ID: " << player->getId() << ") already in match " << matchId << std::endl;
+				return; // Don't add duplicate player
+			}
+		}
+		
+		players.push_back(player);
+		assignedRoles[players.size() - 1] = assignedRole; // Assign the specific role
+		
+		if (players.size() == 10)
+		{
+			// Check if all roles are filled correctly using ASSIGNED roles
+			std::vector<int> roleCounts(5, 0); // T, J, M, A, S
+			
+			for (size_t i = 0; i < players.size(); ++i)
+			{
+				char assignedRoleForPlayer = assignedRoles[i];
+				
+				switch (assignedRoleForPlayer)
+				{
+				case 'T': roleCounts[0]++; break;
+				case 'J': roleCounts[1]++; break;
+				case 'M': roleCounts[2]++; break;
+				case 'A': roleCounts[3]++; break;
+				case 'S': roleCounts[4]++; break;
+				default:
+					std::cout << "    WARNING: Player " << players[i]->getUsername() << " has invalid assigned role: " << assignedRoleForPlayer << "\n";
+				}
+			}
+			
+			// Check if we have exactly 2 players per role
+			char roleNames[] = {'T', 'J', 'M', 'A', 'S'};
+			bool allRolesFilled = true;
+			
+			for (int i = 0; i < 5; ++i)
+			{
+				if (roleCounts[i] == 2)
+				{
+				}
+				else
+				{
+					allRolesFilled = false;
 				}
 			}
 			
 			valid = allRolesFilled;
 		}
+	}
+	else
+	{
+		std::cout << "Warning: Cannot add player to match " << matchId << " - already has 10 players" << std::endl;
 	}
 }
 

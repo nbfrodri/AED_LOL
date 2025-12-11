@@ -15,6 +15,7 @@ private:
 	static int nextMatchId; // Static counter for unique match IDs
 	int matchId;
 	std::vector<Player*> players; // Changed to pointers to allow modification of original players
+	std::vector<char> assignedRoles; // NEW: Track what role each player is assigned in this match
 	std::vector<bool> winners; // true if the player at the corresponding index won, false otherwise
 	int eloWin;
 	int eloLose;
@@ -26,6 +27,7 @@ public:
 
 	bool isValid() const; // Returns whether the match has 10 players
 	void insertPlayer(Player* player); // Inserts a player into the match (the players vector)
+	void insertPlayerWithRole(Player* player, char assignedRole); // Insert player with specific assigned role
 
 	void processMatchResults(); // Updates all players ELO based on the match results (winners vector), it only does this if the match is valid
 	void generateWinners(); // Regenerate random winners for the match

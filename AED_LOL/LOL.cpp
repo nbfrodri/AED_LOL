@@ -9,7 +9,7 @@ LOL::LOL()
 	// Initialize rankQueues for each rank
 	rankQueues.resize(10);
 	// Initialize roleQueues for each rank (10 ranks)
-	roleQueues.resize(10);
+roleQueues.resize(10);
 	// Initialize matchQueues for each rank (10 ranks)
 	matchQueues.resize(10);
 }
@@ -308,8 +308,11 @@ void LOL::simulateMatchmakingSeason(int iterations)
 		
 		// Assign role priorities based on least popular roles
 		assignRolePriorities();
-		std::cout << "Role priorities and player priorities updated for iteration " << i << "\n";
 		
+		// Update priorities of all players
+		updateAllPlayersPriorities();
+		std::cout << "Player priorities updated.\n";
+
 		// Enqueue all players into their respective rank queues
 		enqueueAllPlayersToRankQueues();
 		std::cout << "Players enqueued to rank queues.\n";
@@ -319,13 +322,14 @@ void LOL::simulateMatchmakingSeason(int iterations)
 		std::cout << "Players added to role queues.\n";
 		
 		// Create matches for all ranks
+		std::cout << "Creating matches for iteration " << i << "...\n";
 		createAllMatches();
-		std::cout << "Matches created for iteration " << i << ".\n";
+		std::cout << "Matches creation completed for iteration " << i << ".\n\n";
 		
 		// Process all match results
 		std::cout << "=== PROCESSING MATCH RESULTS ===\n";
 		processAllMatches();
-		std::cout << "=== MATCH PROCESSING COMPLETE ===\n";
+		std::cout << "=== MATCH PROCESSING COMPLETE ===\n\n";
 		
 		std::cout << "Iteration " << i << " completed.\n";
 		
@@ -413,25 +417,45 @@ void LOL::createMatchForRank(const std::string& rank)
 		if (index < roleQueues.size())
 		{
 			Queue& currentRoleQueue = roleQueues[index];
-			std::priority_queue<Player>& currentRankQueue = rankQueues[index];
 			
-			// Create matches while we have at least 10 players in the rank queue
-			while (currentRankQueue.size() >= 10)
+			// Create matches while we have at least 10 players in the role queue
+			int matchesCreated = 0;
+			while (currentRoleQueue.getTotalPlayers() >= 10)
 			{
 				Match match;
-				match.setMatchRank(rank); // Set the match rank
+				match.setMatchRank(rank);
 				std::vector<char> roles = {'T', 'J', 'M', 'A', 'S'};
+				std::vector<int> playersAddedToMatch;
+				bool matchCreationFailed = false;
 				
 				// Try to fill the match with 2 players per role (10 total)
 				for (char role : roles)
 				{
 					int playersNeededForRole = 2;
+					int playersFoundForRole = 0;
+					
 					
 					while (playersNeededForRole > 0 && currentRoleQueue.hasPlayersForRole(role))
 					{
 						try
 						{
 							Player player = currentRoleQueue.getPlayerForRole(role);
+							
+							// Check if this player is already in the match
+							bool playerAlreadyAdded = false;
+							for (int addedId : playersAddedToMatch)
+							{
+								if (addedId == player.getId())
+								{
+									playerAlreadyAdded = true;
+									break;
+								}
+							}
+							
+							if (playerAlreadyAdded)
+							{
+								continue;
+							}
 							
 							// Find the original player in the players vector to get a pointer
 							Player* originalPlayer = nullptr;
@@ -446,56 +470,40 @@ void LOL::createMatchForRank(const std::string& rank)
 							
 							if (originalPlayer != nullptr)
 							{
-								match.insertPlayer(originalPlayer);
-								
-								// Remove player from rank queue as well
-								std::vector<Player> tempPlayers;
-								bool playerFound = false;
-								
-								while (!currentRankQueue.empty() && !playerFound)
-								{
-									Player tempPlayer = currentRankQueue.top();
-									currentRankQueue.pop();
-									
-									if (tempPlayer.getId() != player.getId())
-									{
-										tempPlayers.push_back(tempPlayer);
-									}
-									else
-									{
-										playerFound = true;
-									}
-								}
-								
-								// Put back the other players
-								for (const auto& p : tempPlayers)
-								{
-									currentRankQueue.push(p);
-								}
+								match.insertPlayerWithRole(originalPlayer, role); // Use new method with assigned role
+								playersAddedToMatch.push_back(player.getId());
 							}
 							
 							playersNeededForRole--;
 						}
-						catch (const std::exception&)
+						catch (const std::exception& e)
 						{
-							// No more players available for this role
+							std::cout << "        Exception getting player for role " << role << ": " << e.what() << "\n";
 							break;
 						}
+					}
+										
+					// If we couldn't fill this role, mark match creation as failed
+					if (playersNeededForRole > 0)
+					{
+						matchCreationFailed = true;
+						break;
 					}
 				}
 				
 				// If we have a valid match (10 players), add it to the match queue
-				if (match.isValid())
+				if (match.isValid() && !matchCreationFailed && playersAddedToMatch.size() == 10)
 				{
-					match.generateWinners(); // Generate fresh winners for this match
+					match.generateWinners();
 					matchQueues[index].push(match);
+					matchesCreated++;
 				}
 				else
 				{
-					// If we couldn't create a complete match, break the loop
 					break;
 				}
 			}
+			
 		}
 	}
 }
@@ -506,38 +514,63 @@ void LOL::createAllMatches()
 	for (const auto& rank : ranks)
 	{
 		createMatchForRank(rank);
+		std::cout << "Matches created for rank: " << rank << "\n";
 	}
 }
 
 void LOL::processAllMatches()
 {
-	for (auto& matchQueue : matchQueues)
+	int totalMatchesProcessed = 0;
+	
+	for (size_t rankIndex = 0; rankIndex < matchQueues.size(); ++rankIndex)
 	{
-		// Process all matches in each queue
-		std::queue<Match> tempQueue;
+		auto& matchQueue = matchQueues[rankIndex];
 		
-		// Move matches to temp queue for processing
-		while (!matchQueue.empty())
+		if (!matchQueue.empty())
 		{
-			Match match = matchQueue.front();
-			matchQueue.pop();
+			static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
+			std::string rankName = (rankIndex < ranks.size()) ? ranks[rankIndex] : "Unknown";
 			
-			// Process the match results
-			match.processMatchResults();
+			std::cout << "Processing " << matchQueue.size() << " matches for " << rankName << " rank...\n";
 			
-			// Store in temp queue
-			tempQueue.push(match);
-		}
-		
-		// Move back to original queue (optional, depending on whether you want to keep processed matches)
-		while (!tempQueue.empty())
-		{
-			matchQueue.push(tempQueue.front());
-			tempQueue.pop();
+			// Process all matches in each queue
+			std::queue<Match> tempQueue;
+			int rankMatches = 0;
+			
+			// Move matches to temp queue for processing
+			while (!matchQueue.empty())
+			{
+				Match match = matchQueue.front();
+				matchQueue.pop();
+				
+				std::cout << "  Processing match " << match.getMatchId() << " with " << match.getPlayers().size() << " players\n";
+				
+				// Process the match results
+				match.processMatchResults();
+				rankMatches++;
+				totalMatchesProcessed++;
+				
+				// Store in temp queue
+				tempQueue.push(match);
+			}
+			
+			// Move back to original queue
+			while (!tempQueue.empty())
+			{
+				matchQueue.push(tempQueue.front());
+				tempQueue.pop();
+			}
+			
+			std::cout << "  Processed " << rankMatches << " matches for " << rankName << "\n\n";
 		}
 	}
 	
-	// Note: File saving removed from here to avoid multiple saves during simulation
+	std::cout << "Total matches processed this iteration: " << totalMatchesProcessed << "\n";
+	
+	if (totalMatchesProcessed == 0)
+	{
+		std::cout << "WARNING: No matches were processed! Check match creation.\n";
+	}
 }
 
 // Add players to roleQueues based on their rank and roles, starting from Iron to Challenger
@@ -652,6 +685,7 @@ void LOL::assignRolePriorities()
 	auto [role1, role2] = getTwoLeastPopularRoles();
 	role1Priority = role1;
 	role2Priority = role2;
+		
 	updateAllPlayersPriorities();
 }
 
@@ -735,3 +769,57 @@ void LOL::displayPlayersByRole(char role) const
 		}
 	}
 }
+
+void LOL::displayRoleDistribution() const
+{
+	std::cout << "\n=== ROLE DISTRIBUTION BY RANK ===\n";
+	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
+	std::vector<char> roles = {'T', 'J', 'M', 'A', 'S'};
+	
+	bool hasAnyPlayers = false;
+	
+	for (size_t rankIndex = 0; rankIndex < ranks.size() && rankIndex < roleQueues.size(); ++rankIndex)
+	{
+		int totalPlayersInRank = roleQueues[rankIndex].getTotalPlayers();
+		
+		if (totalPlayersInRank > 0)
+		{
+			hasAnyPlayers = true;
+			std::cout << ranks[rankIndex] << " rank (Total: " << totalPlayersInRank << " players):\n";
+			
+			for (char role : roles)
+			{
+				int count = roleQueues[rankIndex].getPlayersCountForRole(role);
+				std::cout << "  Role " << role << ": " << count << " players";
+				if (count >= 2) 
+				{
+					std::cout << " (sufficient for matches)";
+				}
+				else if (count == 1)
+				{
+					std::cout << " (needs 1 more)";
+				}
+				else
+				{
+					std::cout << " (needs 2 more)";
+				}
+				std::cout << "\n";
+			}
+			std::cout << "\n";
+		}
+		else
+		{
+			std::cout << ranks[rankIndex] << " rank: No players\n";
+		}
+	}
+	
+	if (!hasAnyPlayers)
+	{
+		std::cout << "NO PLAYERS FOUND IN ANY ROLE QUEUES!\n";
+		std::cout << "This suggests players are not being added to role queues properly.\n";
+	}
+	
+	std::cout << "==================================\n";
+}
+
+// File operations// File operations
