@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="AED_LOL/AED_LOL.vcxproj" Id="59e99ee1-3f88-448d-be9e-90abd99f133c" />
+</Solution>
