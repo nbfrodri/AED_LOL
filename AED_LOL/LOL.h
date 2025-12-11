@@ -7,6 +7,8 @@
 #include <queue>
 
 #include "Player.h"
+#include "Queue.h"
+#include "Match.h"
 
 // Matches will also be stored in a vector of stacks, one for each rank (only one stack per rank), the number of matches in each stack is dynamic
 // When a new match is created and filled, the players will be popped from the rank queues (priority queues) according to their rank
@@ -21,8 +23,24 @@ private:
 	std::vector<std::priority_queue<Player>> rankQueues; // Priority queues for each rank (10 ranks: Iron, Bronze, Silver, Gold, Platinum, Emerald, Diamond, Master, Grandmaster, Challenger)
 	char role1Priority;
 	char role2Priority;
+	std::vector<Queue> roleQueues; // Vector of Queue objects for each rank (10 ranks)
+	std::vector<std::stack<Match>> matchStacks; // Stacks for each rank to store the matches once they are fully created
 public:
 	LOL();
+
+	// Processing matches
+
+	void ProcessAllMatches(); // Calls the processMatchResults method on each match, also matches should save in the players history when implemented
+
+	// Creating matches for each rank
+
+	void createMatchForRank(const std::string& rank);
+	void createAllMatches();
+
+	// Add players to roleQueues based on their rank and roles, starting from Iron to Challenger
+
+	void addPlayerToRoleQueue(const Player& player);
+	void addAllPlayersToRoleQueues();
 
 	// Update priorities of all players
 
@@ -58,6 +76,8 @@ public:
 	void displayPlayersByRankAndRole(const std::string& rank, char role) const;
 
 	void displayRankQueue(std::string& rank) const;
+
+	void displayRoleQueue(const std::string& rank, char role, bool isPrimary) const;
 
 	// File operations
 

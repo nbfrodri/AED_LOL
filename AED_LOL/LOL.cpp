@@ -1,9 +1,73 @@
 #include "LOL.h"
+#include <algorithm> // for std::find
 
 LOL::LOL()
 {
 	// Initialize rankQueues for each rank
 	rankQueues.resize(10);
+	// Initialize roleQueues for each rank (10 ranks)
+	roleQueues.resize(10);
+}
+
+// Creating matches for each rank
+
+void LOL::createMatchForRank(const std::string& rank)
+{
+	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
+	auto it = std::find(ranks.begin(), ranks.end(), rank);
+	if (it != ranks.end())
+	{
+		int index = std::distance(ranks.begin(), it);
+		if (index < rankQueues.size())
+		{
+			std::stack<Match>& matchStack = matchStacks[index];
+			Match match;
+			while (matchStack.size() < 1) // Create matches until there is at least one match in the stack
+			{
+				// Fill the match with players from the rank queue
+				while (!match.isValid() && !rankQueues[index].empty())
+				{
+					Player player = rankQueues[index].top();
+					rankQueues[index].pop();
+					match.insertPlayer(player);
+				}
+			}
+		}
+	}
+}
+
+void LOL::createAllMatches()
+{
+	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
+	for (const auto& rank : ranks)
+	{
+		createMatchForRank(rank);
+	}
+}
+
+// Add players to roleQueues based on their rank and roles, starting from Iron to Challenger
+
+void LOL::addPlayerToRoleQueue(const Player& player)
+{
+	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
+	auto it = std::find(ranks.begin(), ranks.end(), player.getRank()); // Iterator that finds the rank of the player in the ranks vector
+	if (it != ranks.end()) // If rank found
+	{
+		int index = std::distance(ranks.begin(), it); // Calculate index based on position in ranks vector (for example, Iron = 0, Bronze = 1, etc.)
+		if (roleQueues.size() <= index)
+		{
+			roleQueues.resize(index + 1); // Resize the roleQueues vector if necessary (needed if for example no players of a certain rank have been added yet)
+		}
+		roleQueues[index].enqueuePlayerToRoleQueue(player); // Add player to the appropriate role queue
+	}
+}
+
+void LOL::addAllPlayersToRoleQueues()
+{
+	for (const auto& player : players)
+	{
+		addPlayerToRoleQueue(player);
+	}
 }
 
 // Update priorities of all players
@@ -210,6 +274,29 @@ void LOL::displayRankQueue(std::string& rank) const
 		else
 		{
 			std::cout << "No players in the " << rank << " queue.\n";
+		}
+	}
+	else
+	{
+		std::cout << "Invalid rank: " << rank << std::endl;
+	}
+}
+
+void LOL::displayRoleQueue(const std::string& rank, char role, bool isPrimary) const
+{
+	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
+	auto it = std::find(ranks.begin(), ranks.end(), rank);
+	if (it != ranks.end())
+	{
+		int index = std::distance(ranks.begin(), it);
+		if (index < roleQueues.size())
+		{
+			std::cout << "Role Queue for Rank: " << rank << "\n";
+			roleQueues[index].displayRoleQueue(role, isPrimary);
+		}
+		else
+		{
+			std::cout << "No role queues found for rank: " << rank << std::endl;
 		}
 	}
 	else

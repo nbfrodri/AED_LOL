@@ -131,6 +131,7 @@
     <ClCompile Include="LOL.cpp" />
     <ClCompile Include="Match.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Queue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="players.csv" />
@@ -139,6 +140,7 @@
     <ClInclude Include="LOL.h" />
     <ClInclude Include="Match.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Queue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

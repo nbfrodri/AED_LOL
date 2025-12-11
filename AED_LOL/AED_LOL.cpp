@@ -10,14 +10,12 @@ int main()
 	lolSystem.loadPlayersFromFile("players.csv");
 	lolSystem.assignRolePriorities(); // Assign role priorities based on least popular roles
 	lolSystem.enqueueAllPlayersToRankQueues(); // Enqueue all players into their respective rank queues
+	lolSystem.addAllPlayersToRoleQueues(); // Add all players to role queues
 
-	// Display players in the Challenger rank queue
-	std::string rankToDisplay = "Challenger";
-	lolSystem.displayRankQueue(rankToDisplay);
-
-	// Show role priorities
-	std::cout << "Role 1 Priority: " << lolSystem.getRole1Priority() << std::endl;
-	std::cout << "Role 2 Priority: " << lolSystem.getRole2Priority() << std::endl;
+	// Display the Top role queue for a specific rank (Challenger)
+	lolSystem.displayRoleQueue("Iron", 'T', true); // true indicates primary role
+	// Display the Top role secondary queue for a specific rank (Challenger)
+	lolSystem.displayRoleQueue("Iron", 'T', false); // false indicates secondary role
 
 	return 0;
 }

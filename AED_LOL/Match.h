@@ -18,4 +18,13 @@ private:
 	bool valid; // Ensures that the match has 10 players with all roles filled correctly
 public:
 	Match();
+
+	bool isValid() const; // Returns whether the match has 10 players
+	void insertPlayer(const Player& player); // Inserts a player into the match (the players vector), on LOL class, when inserting a player into a match:
+
+	/*
+	Solo se cogen jugadores de la cola prioritaria de rol secundario cuando se queda vacía la cola de rol principal (al quitar un jugador de la cola principal, hay que quitarle de la cola secundaria también y de la cola de jugadores por rangos)
+	*/
+
+	void processMatchResults(); // Updates all players ELO based on the match results (winners vector), it only does this if the match is valid
 };
