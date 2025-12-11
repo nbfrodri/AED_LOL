@@ -1,23 +1,25 @@
 #include "Player.h"
+#include <iomanip>
+#include <vector>
 
 // Constructors
 
-Player::Player() : id(0), username(""), timeQueued(0.0), rank("Iron"), elo(0), winRate(0.0)
+Player::Player() : id(0), username(""), timeQueued(0.0), rank("Iron"), elo(0), winRate(0.0), totalMatches(0), totalWins(0)
 {
 	roles[0] = 'U'; // U for Unassigned
 	roles[1] = 'U';
 	priority = 0; // Initial priority
-	// TODO: Initialize match history when implementing game class
+	// matchHistory is automatically initialized as empty stack
 }
 
 Player::Player(int id, const std::string& username, double timeQueued, int elo, char primaryRole, char secondaryRole)
-	: id(id), username(username), timeQueued(timeQueued), elo(elo), winRate(0.0)
+	: id(id), username(username), timeQueued(timeQueued), elo(elo), winRate(0.0), totalMatches(0), totalWins(0)
 {
 	priority = 0; // Initial priority
 	roles[0] = primaryRole;
 	roles[1] = secondaryRole;
 	updateRank(); // Set rank based on initial ELO
-	// TODO: Initialize match history when implementing game class
+	// matchHistory is automatically initialized as empty stack
 }
 
 // Getters
@@ -67,6 +69,92 @@ int Player::getPriority() const
 	return priority;
 }
 
+int Player::getTotalMatches() const
+{
+	return totalMatches;
+}
+
+int Player::getTotalWins() const
+{
+	return totalWins;
+}
+
+const std::stack<MatchResult>& Player::getMatchHistory() const
+{
+	return matchHistory;
+}
+
+// Match history methods
+
+void Player::addMatchResult(int matchId, bool won, int eloChange, const std::string& matchRank)
+{
+	MatchResult result;
+	result.matchId = matchId;
+	result.won = won;
+	result.eloChange = eloChange;
+	result.opponentRank = matchRank;
+	
+	matchHistory.push(result);
+	totalMatches++;
+	
+	if (won)
+	{
+		totalWins++;
+	}
+	
+	calculateWinRate();
+}
+
+void Player::calculateWinRate()
+{
+	if (totalMatches == 0)
+	{
+		winRate = 0.0;
+	}
+	else
+	{
+		winRate = (static_cast<double>(totalWins) / static_cast<double>(totalMatches)) * 100.0;
+	}
+}
+
+void Player::displayMatchHistory() const
+{
+	std::cout << "Match History for " << username << " (Last 5 matches):\n";
+	std::cout << "==================================================\n";
+	
+	if (matchHistory.empty())
+	{
+		std::cout << "No matches played yet.\n";
+		return;
+	}
+	
+	// Create a temporary stack to display history without modifying the original
+	std::stack<MatchResult> tempHistory = matchHistory;
+	std::vector<MatchResult> recentMatches;
+	
+	// Get the last 5 matches
+	int count = 0;
+	while (!tempHistory.empty() && count < 5)
+	{
+		recentMatches.push_back(tempHistory.top());
+		tempHistory.pop();
+		count++;
+	}
+	
+	// Display matches (most recent first)
+	for (const auto& match : recentMatches)
+	{
+		std::cout << "Match ID: " << match.matchId
+				  << " | " << (match.won ? "WIN" : "LOSS")
+				  << " | ELO Change: " << (match.eloChange >= 0 ? "+" : "") << match.eloChange
+				  << " | Rank: " << match.opponentRank << "\n";
+	}
+	
+	std::cout << "==================================================\n";
+	std::cout << "Total Matches: " << totalMatches << " | Total Wins: " << totalWins 
+			  << " | Win Rate: " << std::fixed << std::setprecision(1) << winRate << "%\n";
+}
+
 // Setters
 
 void Player::setRank(const std::string& rank)
@@ -84,6 +172,16 @@ void Player::setWinRate(double winRate)
 	this->winRate = winRate;
 }
 
+void Player::setTotalMatches(int total)
+{
+	this->totalMatches = total;
+}
+
+void Player::setTotalWins(int wins)
+{
+	this->totalWins = wins;
+}
+
 // Other methods
 
 void Player::displayInfo() const
@@ -92,12 +190,12 @@ void Player::displayInfo() const
 	std::cout << "Username: " << username << "\n";
 	std::cout << "Rank: " << rank << "\n";
 	std::cout << "ELO: " << elo << "\n";
-	std::cout << "Win Rate: " << winRate << "%\n";
+	std::cout << "Win Rate: " << std::fixed << std::setprecision(1) << winRate << "%\n";
 	std::cout << "Primary Role: " << roles[0] << "\n";
 	std::cout << "Secondary Role: " << roles[1] << "\n";
 	std::cout << "Time Queued: " << timeQueued << " seconds\n";
 	std::cout << "Priority: " << priority << "\n";
-	// TODO: Display match history when implementing game class
+	std::cout << "Total Matches: " << totalMatches << " | Total Wins: " << totalWins << "\n";
 }
 
 void Player::updateRank()
@@ -130,7 +228,8 @@ void Player::calculatePriority(char rol1, char rol2)
 
 std::ostream& operator<<(std::ostream& os, const Player& player)
 {
-	os << player.id << "," << player.username << "," << player.timeQueued << "," << player.elo << "," << player.roles[0] << "," << player.roles[1];
+	os << player.id << "," << player.username << "," << player.timeQueued << "," 
+	   << player.elo << "," << player.roles[0] << "," << player.roles[1];
 	return os;
 }
 
@@ -141,6 +240,8 @@ std::istream& operator>>(std::istream& is, Player& player)
 	{
 		std::istringstream ss(line);
 		std::string token;
+		
+		// Read basic player data (original format)
 		std::getline(ss, token, ',');
 		player.id = std::stoi(token);
 		std::getline(ss, token, ',');
@@ -153,6 +254,12 @@ std::istream& operator>>(std::istream& is, Player& player)
 		player.roles[0] = token[0];
 		std::getline(ss, token, ',');
 		player.roles[1] = token[0];
+		
+		// Match statistics are NOT read from file - they start fresh each session
+		player.totalMatches = 0;
+		player.totalWins = 0;
+		player.calculateWinRate(); // Will be 0.0 since no matches yet
+		
 		player.updateRank(); // Update rank based on ELO
 	}
 	return is;

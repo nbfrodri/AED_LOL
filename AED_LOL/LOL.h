@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <queue>
+#include <stack>
 
 #include "Player.h"
 #include "Queue.h"
@@ -13,7 +14,7 @@
 // Matches will also be stored in a vector of stacks, one for each rank (only one stack per rank), the number of matches in each stack is dynamic
 // When a new match is created and filled, the players will be popped from the rank queues (priority queues) according to their rank
 // and added to the match. Once the match is completed, it will be pushed onto the corresponding rank stack.
-// We will start by creating the matches for the highest rank (Challenger) and go downwards to Iron.
+// We will start by creating the matches for the Iron rank and go upwards to Challenger.
 // Once all the matches are created and all the players are popped from the rank queues, the results will be processed, updating the players' ELO and win rates accordingly.
 
 class LOL
@@ -30,7 +31,7 @@ public:
 
 	// Processing matches
 
-	void ProcessAllMatches(); // Calls the processMatchResults method on each match, also matches should save in the players history when implemented
+	void processAllMatches(); // Calls the processMatchResults method on each match, also matches should save in the players history when implemented
 
 	// Creating matches for each rank
 
@@ -78,7 +79,15 @@ public:
 	void displayRankQueue(std::string& rank) const;
 
 	void displayRoleQueue(const std::string& rank, char role, bool isPrimary) const;
-
+	
+	// Display matches
+	void displayMatchesForRank(const std::string& rank) const;
+	void displayMatchInfo(const Match& match) const;
+	
+	// Display player match history
+	void displayPlayerMatchHistory(int playerId) const;
+	void displayPlayersWithHighestWinRate(int topCount = 5) const;
+	
 	// File operations
 
 	void loadPlayersFromFile(const std::string& filename);

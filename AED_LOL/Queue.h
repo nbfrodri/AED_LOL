@@ -15,6 +15,17 @@ public:
 	// Enqueue players into their respective role queues
 	void enqueuePlayerToRoleQueue(const Player& player);
 
+	// Get player from role queue with priority logic
+	Player getPlayerForRole(char role); // Gets player prioritizing main role, then secondary
+	bool hasPlayersForRole(char role) const; // Check if there are players available for a role
+	
+	// Remove player from both queues when taken
+	void removePlayerFromQueues(const Player& player);
+
 	// Display role queues
 	void displayRoleQueue(char role, bool isPrimary) const;
+
+	// Check if queues are empty
+	bool isEmpty() const;
+	int getTotalPlayers() const; // Get total number of players across all role queues
 };

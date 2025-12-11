@@ -5,7 +5,18 @@
 #include <iostream>
 #include <sstream>
 
+// Forward declaration to avoid circular dependency
+class Match;
+
 // Both winRate and history will be calculated/created when the program runs, not stored in files.
+
+struct MatchResult
+{
+	int matchId;
+	bool won; // true if won, false if lost
+	int eloChange; // positive for wins, negative for losses
+	std::string opponentRank; // rank of the match
+};
 
 class Player
 {
@@ -23,7 +34,11 @@ private:
 	std::string ranks[10] = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
 	int rankRanges[10] = { 0, 100, 200, 300, 400, 500, 600, 700, 800, 900 }; // ELO ranges for each rank
 
-	// TODO: Add history of matches played when implementing game class
+	// Match history
+	std::stack<MatchResult> matchHistory; // Stack to store match history
+	int totalMatches; // Total number of matches played
+	int totalWins; // Total number of wins
+
 public:
 	// Default constructor
 	Player();
@@ -40,22 +55,28 @@ public:
 	double getWinRate() const;
 	double getTimeQueued() const;
 	int getPriority() const;
-	// TODO: Add getters for match history when implementing game class
+	int getTotalMatches() const;
+	int getTotalWins() const;
+	
+	// Match history methods
+	void addMatchResult(int matchId, bool won, int eloChange, const std::string& matchRank);
+	void calculateWinRate(); // Calculate win rate based on match history
+	void displayMatchHistory() const; // Display recent match history
+	const std::stack<MatchResult>& getMatchHistory() const;
 
 	// Setters
-
 	void setRank(const std::string& rank);
 	void setElo(int elo);
 	void setWinRate(double winRate);
+	void setTotalMatches(int total);
+	void setTotalWins(int wins);
 
 	// Other methods
-
 	void displayInfo() const; // Method to display player information
 	void updateRank(); // Method to update rank based on ELO
 	void calculatePriority(char rol1, char rol2); // Method to calculate priority based on time and roles
 
 	// Operator overloads
-
 	// for reading/writing player data to/from files
 	friend std::ostream& operator<<(std::ostream& os, const Player& player);
 	friend std::istream& operator>>(std::istream& is, Player& player);
