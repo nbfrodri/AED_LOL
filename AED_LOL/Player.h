@@ -70,6 +70,7 @@ public:
 	void setWinRate(double winRate);
 	void setTotalMatches(int total);
 	void setTotalWins(int wins);
+	void setTimeQueued(double timeQueued);
 
 	// Other methods
 	void displayInfo() const; // Method to display player information

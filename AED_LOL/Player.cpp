@@ -182,6 +182,11 @@ void Player::setTotalWins(int wins)
 	this->totalWins = wins;
 }
 
+void Player::setTimeQueued(double timeQueued)
+{
+	this->timeQueued = timeQueued;
+}
+
 // Other methods
 
 void Player::displayInfo() const

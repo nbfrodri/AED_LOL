@@ -19,22 +19,20 @@ int main()
 	lolSystem.addAllPlayersToRoleQueues();
 
 	// Create matches for all ranks
-	std::cout << "Creating matches...\n";
 	lolSystem.createAllMatches();
-	std::cout << "Matches created successfully.\n\n";
-	
-	// Display detailed match information for specific ranks
-	std::cout << "=== DISPLAYING DETAILED MATCH INFORMATION ===\n";
-	lolSystem.displayMatchesForRank("Master");
-	
+		
 	// Process all match results (this will automatically save to file)
-	std::cout << "Processing match results...\n";
 	lolSystem.processAllMatches();
-	std::cout << "All matches processed and player data saved.\n\n";
 	
+	// Assign new random queue times to all players
+	lolSystem.assignRandomQueueTimes();
+
+	// Save updated player data back to file
+	lolSystem.savePlayersToFile("players.csv");
+
 	// Display match history for a specific player (example: player ID 1)
 	std::cout << "=== PLAYER MATCH HISTORY EXAMPLE ===\n";
-	lolSystem.displayPlayerMatchHistory(1);
+	lolSystem.displayPlayerMatchHistory(3);
 	
 	return 0;
 }

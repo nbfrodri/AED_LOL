@@ -1,6 +1,8 @@
 #include "LOL.h"
 #include <algorithm> // for std::find and std::sort
 #include <iomanip>   // for std::setprecision
+#include <cstdlib>   // for std::rand and std::srand
+#include <ctime>     // for std::time
 
 LOL::LOL()
 {
@@ -185,6 +187,20 @@ void LOL::displayPlayersWithHighestWinRate(int topCount) const
 	}
 	
 	std::cout << "========================================\n\n";
+}
+
+void LOL::assignRandomQueueTimes()
+{
+	std::srand(static_cast<unsigned int>(std::time(0))); // Seed the random number generator
+	
+	for (auto& player : players)
+	{
+		// Generate random double between 1.0 and 400.0
+		double randomTime = 1.0 + static_cast<double>(std::rand()) / RAND_MAX * 399.0;
+		player.setTimeQueued(randomTime);
+	}
+	
+	std::cout << "Random queue times assigned to all players (1.0 - 400.0 seconds).\n";
 }
 
 // File operations

@@ -88,6 +88,9 @@ public:
 	void displayPlayerMatchHistory(int playerId) const;
 	void displayPlayersWithHighestWinRate(int topCount = 5) const;
 	
+	// Queue time management
+	void assignRandomQueueTimes();
+	
 	// File operations
 
 	void loadPlayersFromFile(const std::string& filename);
