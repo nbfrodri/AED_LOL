@@ -11,9 +11,9 @@
 #include "Queue.h"
 #include "Match.h"
 
-// Matches will also be stored in a vector of stacks, one for each rank (only one stack per rank), the number of matches in each stack is dynamic
+// Matches will also be stored in a vector of queues, one for each rank (only one queue per rank), the number of matches in each queue is dynamic
 // When a new match is created and filled, the players will be popped from the rank queues (priority queues) according to their rank
-// and added to the match. Once the match is completed, it will be pushed onto the corresponding rank stack.
+// and added to the match. Once the match is completed, it will be pushed onto the corresponding rank queue.
 // We will start by creating the matches for the Iron rank and go upwards to Challenger.
 // Once all the matches are created and all the players are popped from the rank queues, the results will be processed, updating the players' ELO and win rates accordingly.
 
@@ -25,7 +25,7 @@ private:
 	char role1Priority;
 	char role2Priority;
 	std::vector<Queue> roleQueues; // Vector of Queue objects for each rank (10 ranks)
-	std::vector<std::stack<Match>> matchStacks; // Stacks for each rank to store the matches once they are fully created
+	std::vector<std::queue<Match>> matchQueues; // Queues for each rank to store the matches once they are fully created
 public:
 	LOL();
 
@@ -71,7 +71,10 @@ public:
 
 	// Show methods
 
+	void displayTopPlayersByWinRateWithMinMatch(int minMatch, int top) const;
 	void displayAllPlayers() const;
+	void displayAllPlayersByELO() const;
+	void displayTopPlayersByELO(int top) const;
 	void displayPlayersByRank(const std::string& rank) const;
 	void displayPlayersByRole(char role) const;
 	void displayPlayersByRankAndRole(const std::string& rank, char role) const;
@@ -83,6 +86,7 @@ public:
 	// Display matches
 	void displayMatchesForRank(const std::string& rank) const;
 	void displayMatchInfo(const Match& match) const;
+	void displaySampleMatchFromIteration() const; // Display one match from any rank for demonstration
 	
 	// Display player match history
 	void displayPlayerMatchHistory(int playerId) const;
@@ -91,8 +95,11 @@ public:
 	// Queue time management
 	void assignRandomQueueTimes();
 	
+	// Simulation methods
+	void simulateMatchmakingSeason(int iterations);
+	void clearAllQueues(); // Clear all queues between iterations
+	
 	// File operations
-
 	void loadPlayersFromFile(const std::string& filename);
 	void savePlayersToFile(const std::string& filename) const;
 };

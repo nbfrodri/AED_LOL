@@ -3,6 +3,7 @@
 #include "Player.h"
 #include <cstdlib>
 #include <vector>
+#include <queue>
 
 // Each match will store the players that participated, who won, and the ELO changes
 // Also, all the roles should be filled (in total 10 players, 2 per role): T, J, M, A, S
@@ -19,17 +20,15 @@ private:
 	int eloLose;
 	bool valid; // Ensures that the match has 10 players with all roles filled correctly
 	std::string matchRank; // The rank tier this match belongs to
+	bool winnersGenerated; // Flag to track if winners have been generated
 public:
 	Match();
 
 	bool isValid() const; // Returns whether the match has 10 players
-	void insertPlayer(Player* player); // Inserts a player into the match (the players vector), on LOL class, when inserting a player into a match:
-
-	/*
-	Solo se cogen jugadores de la cola prioritaria de rol secundario cuando se queda vacía la cola de rol principal (al quitar un jugador de la cola principal, hay que quitarle de la cola secundaria también y de la cola de jugadores por rangos)
-	*/
+	void insertPlayer(Player* player); // Inserts a player into the match (the players vector)
 
 	void processMatchResults(); // Updates all players ELO based on the match results (winners vector), it only does this if the match is valid
+	void generateWinners(); // Regenerate random winners for the match
 
 	void showMatchInfo() const; // Displays information about the match and its players
 	

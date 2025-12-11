@@ -95,14 +95,9 @@ void Player::addMatchResult(int matchId, bool won, int eloChange, const std::str
 	result.opponentRank = matchRank;
 	
 	matchHistory.push(result);
-	totalMatches++;
 	
-	if (won)
-	{
-		totalWins++;
-	}
-	
-	calculateWinRate();
+	// Use recursive method to recalculate win rate from entire history
+	calculateWinRateRecursive();
 }
 
 void Player::calculateWinRate()
@@ -117,9 +112,63 @@ void Player::calculateWinRate()
 	}
 }
 
+// Recursive helper function to count wins/losses from match history stack
+std::pair<int, int> countWinsLossesRecursive(std::stack<MatchResult> historyStack)
+{
+	// Base case: if stack is empty
+	if (historyStack.empty())
+	{
+		return {0, 0}; // {wins, totalMatches}
+	}
+	
+	// Get the top match result
+	MatchResult currentMatch = historyStack.top();
+	historyStack.pop();
+	
+	// Recursively process the rest of the stack
+	auto [wins, matches] = countWinsLossesRecursive(historyStack);
+	
+	// Add current match to the count
+	if (currentMatch.won)
+	{
+		return {wins + 1, matches + 1};
+	}
+	else
+	{
+		return {wins, matches + 1};
+	}
+}
+
+void Player::calculateWinRateRecursive()
+{
+	if (matchHistory.empty())
+	{
+		winRate = 0.0;
+		totalMatches = 0;
+		totalWins = 0;
+	}
+	else
+	{
+		// Use recursive function to calculate wins and total matches
+		auto [wins, matches] = countWinsLossesRecursive(matchHistory);
+		
+		totalWins = wins;
+		totalMatches = matches;
+		
+		if (totalMatches > 0)
+		{
+			winRate = (static_cast<double>(totalWins) / static_cast<double>(totalMatches)) * 100.0;
+		}
+		else
+		{
+			winRate = 0.0;
+		}
+	}
+}
+
 void Player::displayMatchHistory() const
 {
-	std::cout << "Match History for " << username << " (Last 5 matches):\n";
+	std::cout << "Match History for " << username << " (Last 20 matches):\n";
 	std::cout << "==================================================\n";
 	
 	if (matchHistory.empty())
@@ -134,7 +183,7 @@ void Player::displayMatchHistory() const
 	
 	// Get the last 5 matches
 	int count = 0;
-	while (!tempHistory.empty() && count < 5)
+	while (!tempHistory.empty() && count < 20)
 	{
 		recentMatches.push_back(tempHistory.top());
 		tempHistory.pop();

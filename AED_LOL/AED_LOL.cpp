@@ -9,30 +9,29 @@ int main()
 	// Load players from file
 	lolSystem.loadPlayersFromFile("players.csv");
 	
-	// Assign role priorities based on least popular roles
-	lolSystem.assignRolePriorities();
-	
-	// Enqueue all players into their respective rank queues
-	lolSystem.enqueueAllPlayersToRankQueues();
-	
-	// Add all players to role queues
-	lolSystem.addAllPlayersToRoleQueues();
+	// Run simulation for multiple iterations
+	int simulationIterations = 50; // Change this to simulate different numbers of seasons
+	lolSystem.simulateMatchmakingSeason(simulationIterations);
 
-	// Create matches for all ranks
-	lolSystem.createAllMatches();
-		
-	// Process all match results (this will automatically save to file)
-	lolSystem.processAllMatches();
-	
-	// Assign new random queue times to all players
-	lolSystem.assignRandomQueueTimes();
-
-	// Save updated player data back to file
+	// Save final updated player data back to file
 	lolSystem.savePlayersToFile("players.csv");
+	
+	// Display final statistics
+	std::cout << "=== FINAL PLAYER STATISTICS ===\n";
 
-	// Display match history for a specific player (example: player ID 1)
+	// Display first top 10 players by ELO
+
+	lolSystem.displayTopPlayersByELO(10);
+
+	// Display top 10 WR players that minimum have 10 matches played
+
+	int minMatches = 10;
+	int topPlayers = 10;
+	lolSystem.displayTopPlayersByWinRateWithMinMatch(minMatches, topPlayers);
+
+	// Display match history for a specific player (example: player ID 3)
 	std::cout << "=== PLAYER MATCH HISTORY EXAMPLE ===\n";
-	lolSystem.displayPlayerMatchHistory(3);
+	lolSystem.displayPlayerMatchHistory(891);
 	
 	return 0;
 }

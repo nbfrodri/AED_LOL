@@ -32,7 +32,7 @@ private:
 
 	// Variables for rank and ELO management
 	std::string ranks[10] = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
-	int rankRanges[10] = { 0, 100, 200, 300, 400, 500, 600, 700, 800, 900 }; // ELO ranges for each rank
+	int rankRanges[10] = { 0, 100, 200, 300, 400, 500, 600, 700, 800, 900 }; // ELO ranges for each rank (Iron=0-99, Bronze=100-199, etc.)
 
 	// Match history
 	std::stack<MatchResult> matchHistory; // Stack to store match history
@@ -61,6 +61,7 @@ public:
 	// Match history methods
 	void addMatchResult(int matchId, bool won, int eloChange, const std::string& matchRank);
 	void calculateWinRate(); // Calculate win rate based on match history
+	void calculateWinRateRecursive(); // Calculate win rate using recursive method on match history
 	void displayMatchHistory() const; // Display recent match history
 	const std::stack<MatchResult>& getMatchHistory() const;
 

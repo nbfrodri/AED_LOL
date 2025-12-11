@@ -10,8 +10,70 @@ LOL::LOL()
 	rankQueues.resize(10);
 	// Initialize roleQueues for each rank (10 ranks)
 	roleQueues.resize(10);
-	// Initialize matchStacks for each rank (10 ranks)
-	matchStacks.resize(10);
+	// Initialize matchQueues for each rank (10 ranks)
+	matchQueues.resize(10);
+}
+
+void LOL::displayTopPlayersByWinRateWithMinMatch(int minMatch, int top) const {
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players with at least minMatch played
+	for (const auto& player : players)
+	{
+		if (player.getTotalMatches() >= minMatch)
+		{
+			filteredPlayers.push_back(player);
+		}
+	}
+	
+	// Sort filtered players by win rate in descending order
+	std::sort(filteredPlayers.begin(), filteredPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getWinRate() > b.getWinRate();
+	});
+	
+	std::cout << "\n========================================\n";
+	std::cout << "TOP " << top << " PLAYERS BY WIN RATE (MIN " << minMatch << " MATCHES)\n";
+	std::cout << "========================================\n";
+	
+	for (int i = 0; i < top && i < filteredPlayers.size(); ++i)
+	{
+		const auto& player = filteredPlayers[i];
+		std::cout << (i + 1) << ". ";
+		player.displayInfo();
+		std::cout << "-----------------------\n";
+	}
+	
+	std::cout << "========================================\n\n";
+}
+
+void LOL::displayTopPlayersByELO(int top) const {
+	std::vector<Player> sortedPlayers = players;
+	std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getElo() > b.getElo(); // Sort in descending order of ELO
+	});
+	std::cout << "\n========================================\n";
+	std::cout << "TOP " << top << " PLAYERS BY ELO\n";
+	std::cout << "========================================\n";
+	for (int i = 0; i < top && i < sortedPlayers.size(); ++i)
+	{
+		const auto& player = sortedPlayers[i];
+		std::cout << (i + 1) << ". ";
+		player.displayInfo();
+		std::cout << "-----------------------\n";
+	}
+	std::cout << "========================================\n\n";
+}
+
+void LOL::displayAllPlayersByELO() const {
+	std::vector<Player> sortedPlayers = players;
+	std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getElo() > b.getElo(); // Sort in descending order of ELO
+	});
+	for (const auto& player : sortedPlayers)
+	{
+		player.displayInfo();
+		std::cout << "-----------------------\n";
+	}
 }
 
 void LOL::displayPlayersByRankAndRole(const std::string& rank, char role) const
@@ -85,30 +147,30 @@ void LOL::displayMatchesForRank(const std::string& rank) const
 	if (it != ranks.end())
 	{
 		int index = std::distance(ranks.begin(), it);
-		if (index < matchStacks.size())
+		if (index < matchQueues.size())
 		{
 			std::cout << "\n========================================\n";
 			std::cout << "        MATCHES FOR RANK: " << rank << "\n";
 			std::cout << "========================================\n";
-			std::cout << "Number of matches: " << matchStacks[index].size() << "\n\n";
+			std::cout << "Number of matches: " << matchQueues[index].size() << "\n\n";
 			
-			if (matchStacks[index].empty())
+			if (matchQueues[index].empty())
 			{
 				std::cout << "No matches found for this rank.\n";
 				std::cout << "========================================\n\n";
 				return;
 			}
 			
-			// Create a copy of the stack to iterate through it
-			std::stack<Match> tempStack = matchStacks[index];
+			// Create a copy of the queue to iterate through it
+			std::queue<Match> tempQueue = matchQueues[index];
 			int matchNumber = 1;
 			
-			while (!tempStack.empty())
+			while (!tempQueue.empty())
 			{
-				const Match& match = tempStack.top();
+				const Match& match = tempQueue.front();
 				std::cout << "MATCH #" << matchNumber << ":\n";
 				displayMatchInfo(match);
-				tempStack.pop();
+				tempQueue.pop();
 				matchNumber++;
 			}
 			
@@ -130,6 +192,31 @@ void LOL::displayMatchesForRank(const std::string& rank) const
 void LOL::displayMatchInfo(const Match& match) const
 {
 	match.showMatchInfo();
+}
+
+void LOL::displaySampleMatchFromIteration() const
+{
+	std::cout << "\n=== SAMPLE MATCH FROM THIS ITERATION ===\n";
+	
+	// Find the first non-empty match queue and display one match
+	for (size_t rankIndex = 0; rankIndex < matchQueues.size(); ++rankIndex)
+	{
+		if (!matchQueues[rankIndex].empty())
+		{
+			// Get rank name
+			static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
+			
+			std::queue<Match> tempQueue = matchQueues[rankIndex];
+			const Match& sampleMatch = tempQueue.front();
+			
+			std::cout << "Sample from " << ranks[rankIndex] << " rank:\n";
+			displayMatchInfo(sampleMatch);
+			return;
+		}
+	}
+	
+	std::cout << "No matches found in this iteration.\n";
+	std::cout << "=========================================\n\n";
 }
 
 void LOL::displayPlayerMatchHistory(int playerId) const
@@ -201,6 +288,84 @@ void LOL::assignRandomQueueTimes()
 	}
 	
 	std::cout << "Random queue times assigned to all players (1.0 - 400.0 seconds).\n";
+}
+
+void LOL::simulateMatchmakingSeason(int iterations)
+{
+	std::cout << "\n=== STARTING MATCHMAKING SIMULATION ===\n";
+	std::cout << "Running " << iterations << " iteration(s) of matchmaking...\n\n";
+	
+	for (int i = 1; i <= iterations; ++i)
+	{
+		std::cout << "--- ITERATION " << i << " ---\n";
+		
+		// Clear all queues and match stacks from previous iteration
+		clearAllQueues();
+		std::cout << "All queues cleared for fresh start.\n";
+		
+		// Assign new random queue times to all players
+		assignRandomQueueTimes();
+		
+		// Assign role priorities based on least popular roles
+		assignRolePriorities();
+		std::cout << "Role priorities and player priorities updated for iteration " << i << "\n";
+		
+		// Enqueue all players into their respective rank queues
+		enqueueAllPlayersToRankQueues();
+		std::cout << "Players enqueued to rank queues.\n";
+		
+		// Add all players to role queues
+		addAllPlayersToRoleQueues();
+		std::cout << "Players added to role queues.\n";
+		
+		// Create matches for all ranks
+		createAllMatches();
+		std::cout << "Matches created for iteration " << i << ".\n";
+		
+		// Process all match results
+		std::cout << "=== PROCESSING MATCH RESULTS ===\n";
+		processAllMatches();
+		std::cout << "=== MATCH PROCESSING COMPLETE ===\n";
+		
+		std::cout << "Iteration " << i << " completed.\n";
+		
+		// Add separator between iterations (except for the last one)
+		if (i < iterations)
+		{
+			std::cout << "\n";
+		}
+	}
+	
+	std::cout << "\n=== SIMULATION COMPLETED ===\n";
+	std::cout << "All " << iterations << " iteration(s) completed successfully!\n";
+	std::cout << "Final player data saved to file.\n\n";
+}
+
+void LOL::clearAllQueues()
+{
+	// Clear all rank queues (priority queues)
+	for (auto& queue : rankQueues)
+	{
+		while (!queue.empty())
+		{
+			queue.pop();
+		}
+	}
+	
+	// Clear all role queues
+	for (auto& queue : roleQueues)
+	{
+		queue.clearAllQueues();
+	}
+	
+	// Clear all match queues
+	for (auto& queue : matchQueues)
+	{
+		while (!queue.empty())
+		{
+			queue.pop();
+		}
+	}
 }
 
 // File operations
@@ -319,10 +484,11 @@ void LOL::createMatchForRank(const std::string& rank)
 					}
 				}
 				
-				// If we have a valid match (10 players), add it to the match stack
+				// If we have a valid match (10 players), add it to the match queue
 				if (match.isValid())
 				{
-					matchStacks[index].push(match);
+					match.generateWinners(); // Generate fresh winners for this match
+					matchQueues[index].push(match);
 				}
 				else
 				{
@@ -345,36 +511,33 @@ void LOL::createAllMatches()
 
 void LOL::processAllMatches()
 {
-	for (auto& matchStack : matchStacks)
+	for (auto& matchQueue : matchQueues)
 	{
-		// Process all matches in each stack
-		std::stack<Match> tempStack;
+		// Process all matches in each queue
+		std::queue<Match> tempQueue;
 		
-		// Move matches to temp stack for processing
-		while (!matchStack.empty())
+		// Move matches to temp queue for processing
+		while (!matchQueue.empty())
 		{
-			Match match = matchStack.top();
-			matchStack.pop();
+			Match match = matchQueue.front();
+			matchQueue.pop();
 			
 			// Process the match results
 			match.processMatchResults();
 			
-			// Store in temp stack
-			tempStack.push(match);
+			// Store in temp queue
+			tempQueue.push(match);
 		}
 		
-		// Move back to original stack (optional, depending on whether you want to keep processed matches)
-		while (!tempStack.empty())
+		// Move back to original queue (optional, depending on whether you want to keep processed matches)
+		while (!tempQueue.empty())
 		{
-			matchStack.push(tempStack.top());
-			tempStack.pop();
+			matchQueue.push(tempQueue.front());
+			tempQueue.pop();
 		}
 	}
 	
-	// Save updated player data to file after processing all matches
-	std::cout << "Saving updated player data to file...\n";
-	savePlayersToFile("players.csv");
-	std::cout << "Player data saved successfully.\n";
+	// Note: File saving removed from here to avoid multiple saves during simulation
 }
 
 // Add players to roleQueues based on their rank and roles, starting from Iron to Challenger

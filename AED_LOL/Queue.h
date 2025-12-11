@@ -28,4 +28,7 @@ public:
 	// Check if queues are empty
 	bool isEmpty() const;
 	int getTotalPlayers() const; // Get total number of players across all role queues
+	
+	// Clear all queues
+	void clearAllQueues();
 };

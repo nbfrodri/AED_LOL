@@ -6,18 +6,28 @@
 // Static member definition
 int Match::nextMatchId = 1;
 
-Match::Match() : matchId(nextMatchId++), valid(false), matchRank("")
+Match::Match() : matchId(nextMatchId++), valid(false), matchRank(""), winnersGenerated(false)
 {
-	srand(static_cast<unsigned int>(time(0))); // Seed the random number generator
-
 	// Using random, establish a random number between 15 and 30 for eloWin and eloLose
 	eloWin = rand() % 16 + 15;
 	eloLose = rand() % 16 + 15;
 
-	// We also initialize the positions in the winners vector to false and then randomly set 5 of them to true
+	// Initialize winners vector but don't populate it yet
 	winners.resize(10, false);
-	int winsAssigned = 0;
+}
 
+void Match::generateWinners()
+{
+	if (players.size() != 10) return;
+	
+	// Clear previous winners
+	std::fill(winners.begin(), winners.end(), false);
+	
+	// Seed random number generator with current time + match ID for better randomness
+	srand(static_cast<unsigned int>(time(0)) + matchId);
+	
+	// Randomly set 5 players as winners
+	int winsAssigned = 0;
 	while (winsAssigned < 5)
 	{
 		int randomIndex = rand() % 10;
@@ -27,6 +37,8 @@ Match::Match() : matchId(nextMatchId++), valid(false), matchRank("")
 			winsAssigned++;
 		}
 	}
+	
+	winnersGenerated = true;
 }
 
 bool Match::isValid() const
@@ -76,11 +88,21 @@ void Match::processMatchResults()
 {
 	if (!isValid()) return;
 	
+	// Generate fresh winners for this match if not already done
+	if (!winnersGenerated)
+	{
+		generateWinners();
+	}
+		
 	for (size_t i = 0; i < players.size(); ++i)
 	{
 		Player* player = players[i];
 		bool playerWon = winners[i];
 		int eloChange = 0;
+		
+		// Store old rank for comparison
+		std::string oldRank = player->getRank();
+		int oldElo = player->getElo();
 		
 		if (playerWon)
 		{
@@ -104,6 +126,7 @@ void Match::processMatchResults()
 		// Add match result to player's history
 		player->addMatchResult(matchId, playerWon, eloChange, matchRank);
 	}
+	
 }
 
 void Match::showMatchInfo() const

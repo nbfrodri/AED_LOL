@@ -146,3 +146,24 @@ int Queue::getTotalPlayers() const
 	}
 	return total;
 }
+
+void Queue::clearAllQueues()
+{
+	// Clear all main role queues
+	for (auto& queue : mainRolesQueue)
+	{
+		while (!queue.empty())
+		{
+			queue.pop();
+		}
+	}
+	
+	// Clear all secondary role queues
+	for (auto& queue : secondaryRolesQueue)
+	{
+		while (!queue.empty())
+		{
+			queue.pop();
+		}
+	}
+}
