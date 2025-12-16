@@ -437,7 +437,7 @@ void LOL::createMatchForRank(const std::string& rank)
 	// Obtener el índice del rango en el vector de rangos
 	int rankIndex = getRankIndex(rank);
 	if (rankIndex == -1 || rankIndex >= roleQueues.size()) {
-		return; // Rango inválido o fuera de límites
+		return; // Rango inválido or fuera de límites
 	}
 
 	Queue& currentRoleQueue = roleQueues[rankIndex]; // Obtener la cola de roles correspondiente al rango
@@ -634,4 +634,192 @@ void LOL::assignRolePriorities()
 	
 	// Update all players' priorities based on new role priorities
 	updateAllPlayersPriorities();
+}
+
+// Methods for displaying top players by rank+role combination
+
+void LOL::displayTopPlayersByRankRoleAndWinRate(const std::string& rank, char role, int minMatch, int top) const
+{
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players by rank, role, and minimum matches played
+	for (const auto& player : players)
+	{
+		if (player.getRank() == rank && 
+			(player.getPrimaryRole() == role || player.getSecondaryRole() == role) &&
+			player.getTotalMatches() >= minMatch)
+		{
+			filteredPlayers.push_back(player);
+		}
+	}
+	
+	// Sort filtered players by win rate in descending order
+	std::sort(filteredPlayers.begin(), filteredPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getWinRate() > b.getWinRate();
+	});
+	
+	std::cout << "\n========================================\n";
+	std::cout << "TOP " << top << " PLAYERS IN RANK " << rank << " AND ROLE " << role << " BY WIN RATE (MIN " << minMatch << " MATCHES)\n";
+	std::cout << "========================================\n";
+	
+	if (filteredPlayers.empty())
+	{
+		std::cout << "No players found matching the criteria.\n";
+	}
+	else
+	{
+		for (int i = 0; i < top && i < filteredPlayers.size(); ++i)
+		{
+			const auto& player = filteredPlayers[i];
+			std::cout << (i + 1) << ". ";
+			player.displayInfo();
+			std::cout << "-----------------------\n";
+		}
+	}
+	
+	std::cout << "========================================\n\n";
+}
+
+void LOL::displayTopPlayersByRankRoleAndELO(const std::string& rank, char role, int top) const
+{
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players by rank and role
+	for (const auto& player : players)
+	{
+		if (player.getRank() == rank && 
+			(player.getPrimaryRole() == role || player.getSecondaryRole() == role))
+		{
+			filteredPlayers.push_back(player);
+		}
+	}
+	
+	// Sort filtered players by ELO in descending order
+	std::sort(filteredPlayers.begin(), filteredPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getElo() > b.getElo();
+	});
+	
+	std::cout << "\n========================================\n";
+	std::cout << "TOP " << top << " PLAYERS IN RANK " << rank << " AND ROLE " << role << " BY ELO\n";
+	std::cout << "========================================\n";
+	
+	if (filteredPlayers.empty())
+	{
+		std::cout << "No players found matching the criteria.\n";
+	}
+	else
+	{
+		for (int i = 0; i < top && i < filteredPlayers.size(); ++i)
+		{
+			const auto& player = filteredPlayers[i];
+			std::cout << (i + 1) << ". ";
+			player.displayInfo();
+			std::cout << "-----------------------\n";
+		}
+	}
+	
+	std::cout << "========================================\n\n";
+}
+
+// Methods for displaying all players
+
+void LOL::displayAllPlayers() const
+{
+	std::cout << "\n========================================\n";
+	std::cout << "ALL PLAYERS (" << players.size() << " total)\n";
+	std::cout << "========================================\n";
+	
+	if (players.empty())
+	{
+		std::cout << "No players found.\n";
+	}
+	else
+	{
+		for (size_t i = 0; i < players.size(); ++i)
+		{
+			std::cout << (i + 1) << ". ";
+			players[i].displayInfo();
+			std::cout << "-----------------------\n";
+		}
+	}
+	
+	std::cout << "========================================\n\n";
+}
+
+void LOL::displayAllPlayersByRank(const std::string& rank) const
+{
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players by rank
+	for (const auto& player : players)
+	{
+		if (player.getRank() == rank)
+		{
+			filteredPlayers.push_back(player);
+		}
+	}
+	
+	std::cout << "\n========================================\n";
+	std::cout << "ALL PLAYERS IN RANK " << rank << " (" << filteredPlayers.size() << " total)\n";
+	std::cout << "========================================\n";
+	
+	if (filteredPlayers.empty())
+	{
+		std::cout << "No players found in rank " << rank << ".\n";
+	}
+	else
+	{
+		for (size_t i = 0; i < filteredPlayers.size(); ++i)
+		{
+			std::cout << (i + 1) << ". ";
+			filteredPlayers[i].displayInfo();
+			std::cout << "-----------------------\n";
+		}
+	}
+	
+	std::cout << "========================================\n\n";
+}
+
+void LOL::displayAllPlayersByRole(char role, bool isPrimary) const
+{
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players by role (either primary or secondary or both)
+	for (const auto& player : players)
+	{
+		bool matchesRole = false;
+		if (isPrimary)
+		{
+			matchesRole = (player.getPrimaryRole() == role);
+		}
+		else
+		{
+			matchesRole = (player.getSecondaryRole() == role);
+		}
+		
+		if (matchesRole)
+		{
+			filteredPlayers.push_back(player);
+		}
+	}
+	
+	std::cout << "\n========================================\n";
+	std::cout << "ALL PLAYERS WITH " << (isPrimary ? "PRIMARY" : "SECONDARY") << " ROLE " << role << " (" << filteredPlayers.size() << " total)\n";
+	std::cout << "========================================\n";
+	
+	if (filteredPlayers.empty())
+	{
+		std::cout << "No players found with " << (isPrimary ? "primary" : "secondary") << " role " << role << ".\n";
+	}
+	else
+	{
+		for (size_t i = 0; i < filteredPlayers.size(); ++i)
+		{
+			std::cout << (i + 1) << ". ";
+			filteredPlayers[i].displayInfo();
+			std::cout << "-----------------------\n";
+		}
+	}
+	
+	std::cout << "========================================\n\n";
 }
