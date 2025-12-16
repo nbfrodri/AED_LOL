@@ -115,10 +115,9 @@ void Player::calculateWinRate()
 // Recursive helper function to count wins/losses from match history stack
 std::pair<int, int> countWinsLossesRecursive(std::stack<MatchResult> historyStack)
 {
-	// Base case: if stack is empty
 	if (historyStack.empty())
 	{
-		return {0, 0}; // {wins, totalMatches}
+		return {0, 0};
 	}
 	
 	// Get the top match result
@@ -133,6 +132,7 @@ std::pair<int, int> countWinsLossesRecursive(std::stack<MatchResult> historyStac
 	{
 		return {wins + 1, matches + 1};
 	}
+	// If lost we dont add to wins
 	else
 	{
 		return {wins, matches + 1};
@@ -157,7 +157,7 @@ void Player::calculateWinRateRecursive()
 		
 		if (totalMatches > 0)
 		{
-			winRate = (static_cast<double>(totalWins) / static_cast<double>(totalMatches)) * 100.0;
+			winRate = (static_cast<double>(totalWins) / static_cast<double>(totalMatches)) * 100.0; // Calculate win rate
 		}
 		else
 		{
@@ -168,7 +168,7 @@ void Player::calculateWinRateRecursive()
 
 void Player::displayMatchHistory() const
 {
-	std::cout << "Match History for " << username << " (Last 20 matches):\n";
+	std::cout << "Match History for " << username << " (Last 50 matches):\n";
 	std::cout << "==================================================\n";
 	
 	if (matchHistory.empty())
@@ -181,9 +181,9 @@ void Player::displayMatchHistory() const
 	std::stack<MatchResult> tempHistory = matchHistory;
 	std::vector<MatchResult> recentMatches;
 	
-	// Get the last 5 matches
+	// Get the last 50 matches
 	int count = 0;
-	while (!tempHistory.empty() && count < 20)
+	while (!tempHistory.empty() && count < 50)
 	{
 		recentMatches.push_back(tempHistory.top());
 		tempHistory.pop();
@@ -309,7 +309,7 @@ std::istream& operator>>(std::istream& is, Player& player)
 		std::getline(ss, token, ',');
 		player.roles[1] = token[0];
 		
-		// Match statistics are NOT read from file - they start fresh each session
+		// Match statistics start fresh each session
 		player.totalMatches = 0;
 		player.totalWins = 0;
 		player.calculateWinRate(); // Will be 0.0 since no matches yet
@@ -321,5 +321,5 @@ std::istream& operator>>(std::istream& is, Player& player)
 
 bool operator<(const Player& p1, const Player& p2)
 {
-	return p1.getPriority() < p2.getPriority(); // Higher priority value means higher priority
+	return p1.getPriority() < p2.getPriority(); // Higher priority value means it gets matched first
 }

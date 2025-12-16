@@ -22,7 +22,7 @@ public:
 	// Remove player from both queues when taken
 	void removePlayerFromQueues(const Player& player);
 
-	// Display role queues
+	// Display role queues (for debugging)
 	void displayRoleQueue(char role, bool isPrimary) const;
 
 	// Check if queues are empty

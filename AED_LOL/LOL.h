@@ -11,12 +11,6 @@
 #include "Queue.h"
 #include "Match.h"
 
-// Matches will also be stored in a vector of queues, one for each rank (only one queue per rank), the number of matches in each queue is dynamic
-// When a new match is created and filled, the players will be popped from the rank queues (priority queues) according to their rank
-// and added to the match. Once the match is completed, it will be pushed onto the corresponding rank queue.
-// We will start by creating the matches for the Iron rank and go upwards to Challenger.
-// Once all the matches are created and all the players are popped from the rank queues, the results will be processed, updating the players' ELO and win rates accordingly.
-
 class LOL
 {
 private:
@@ -35,22 +29,22 @@ public:
 
 	// Creating matches for each rank
 
-	void createMatchForRank(const std::string& rank);
-	void createAllMatches();
+	void createMatchForRank(const std::string& rank); // Create matches for a specific rank
+	void createAllMatches(); // Create matches for all ranks
 
 	// Add players to roleQueues based on their rank and roles, starting from Iron to Challenger
 
-	void addPlayerToRoleQueue(const Player& player);
-	void addAllPlayersToRoleQueues();
+	void addPlayerToRoleQueue(const Player& player); // Add a single player to the appropriate role queue
+	void addAllPlayersToRoleQueues(); // Add all players to their respective role queues
 
 	// Update priorities of all players
 
-	void updateAllPlayersPriorities();
+	void updateAllPlayersPriorities(); // Update priorities for all players based on current role priorities
 
 	// Enqueue players into their respective rank queues
 
-	void enqueuePlayerToRankQueue(const Player&	player);
-	void enqueueAllPlayersToRankQueues();
+	void enqueuePlayerToRankQueue(const Player& player); // Enqueue a single player to the appropriate rank queue
+	void enqueueAllPlayersToRankQueues(); // Enqueue all players to their respective rank queues
 
 	// Getters for role priorities
 
@@ -59,38 +53,18 @@ public:
 
 	// Get the 2 roles with less players
 
-	std::pair<char, char> getTwoLeastPopularRoles() const;
-	void assignRolePriorities();
+	std::pair<char, char> getTwoLeastPopularRoles() const; // Returns a pair of chars representing the two roles with the least number of players queued
+	void assignRolePriorities(); // Assigns role1Priority and role2Priority based on the least popular roles
 
-	// Count methods
-
-	int countAllPlayers() const;
-	int countPlayersByRank(const std::string& rank) const;
-	int countPlayersByRole(char role) const;
-	int countPlayersByRankAndRole(const std::string& rank, char role) const;
-
-	// Show methods
+	// To filter and display top players (with algorithms)
 
 	void displayTopPlayersByWinRateWithMinMatch(int minMatch, int top) const;
-	void displayAllPlayers() const;
-	void displayAllPlayersByELO() const;
 	void displayTopPlayersByELO(int top) const;
-	void displayPlayersByRank(const std::string& rank) const;
-	void displayPlayersByRole(char role) const;
-	void displayPlayersByRankAndRole(const std::string& rank, char role) const;
-
-	void displayRankQueue(std::string& rank) const;
-
-	void displayRoleQueue(const std::string& rank, char role, bool isPrimary) const;
-	
-	// Display matches
-	void displayMatchesForRank(const std::string& rank) const;
-	void displayMatchInfo(const Match& match) const;
-	void displaySampleMatchFromIteration() const; // Display one match from any rank for demonstration
+	void displayTopPlayersByRoleAndWinRate(char role, int minMatch, int top) const;
+	void displayTopPlayersByRoleAndELO(char role, int top) const;
 	
 	// Display player match history
-	void displayPlayerMatchHistory(int playerId) const;
-	void displayPlayersWithHighestWinRate(int topCount = 5) const;
+	void displayPlayerMatchHistory(int playerId) const; // Display match history for a specific player
 	
 	// Queue time management
 	void assignRandomQueueTimes();
@@ -98,7 +72,6 @@ public:
 	// Simulation methods
 	void simulateMatchmakingSeason(int iterations);
 	void clearAllQueues(); // Clear all queues between iterations
-	void displayRoleDistribution() const; // Display role distribution for debugging
 	
 	// File operations
 	void loadPlayersFromFile(const std::string& filename);

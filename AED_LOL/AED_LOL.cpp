@@ -10,7 +10,7 @@ int main()
 	lolSystem.loadPlayersFromFile("players.csv");
 	
 	// Run simulation for multiple iterations
-	int simulationIterations = 20; // Change to 1 for debugging
+	int simulationIterations = 5; // Change to 1 for debugging
 	lolSystem.simulateMatchmakingSeason(simulationIterations);
 
 	// Save final updated player data back to file
@@ -23,11 +23,11 @@ int main()
 	lolSystem.displayTopPlayersByELO(10);
 
 	// Display top WR players with a minimum of matches played
-	int minMatches = 10;
+	int minMatches = 1;
 	int topPlayers = 10;
 	lolSystem.displayTopPlayersByWinRateWithMinMatch(minMatches, topPlayers);
 
-	// Display match history for a specific player (example: player ID 3)
+	// Display match history for a specific player (example: player ID 1)
 	std::cout << "=== PLAYER MATCH HISTORY EXAMPLE ===\n";
 	lolSystem.displayPlayerMatchHistory(1);
 	

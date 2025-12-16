@@ -5,10 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-// Forward declaration to avoid circular dependency
 class Match;
-
-// Both winRate and history will be calculated/created when the program runs, not stored in files.
 
 struct MatchResult
 {
@@ -59,11 +56,11 @@ public:
 	int getTotalWins() const;
 	
 	// Match history methods
-	void addMatchResult(int matchId, bool won, int eloChange, const std::string& matchRank);
+	void addMatchResult(int matchId, bool won, int eloChange, const std::string& matchRank); // Add a match result to history
 	void calculateWinRate(); // Calculate win rate based on match history
 	void calculateWinRateRecursive(); // Calculate win rate using recursive method on match history
 	void displayMatchHistory() const; // Display recent match history
-	const std::stack<MatchResult>& getMatchHistory() const;
+	const std::stack<MatchResult>& getMatchHistory() const; // Get match history stack
 
 	// Setters
 	void setRank(const std::string& rank);
@@ -74,7 +71,7 @@ public:
 	void setTimeQueued(double timeQueued);
 
 	// Other methods
-	void displayInfo() const; // Method to display player information
+	void displayInfo() const; // Method to display player information (for debugging)
 	void updateRank(); // Method to update rank based on ELO
 	void calculatePriority(char rol1, char rol2); // Method to calculate priority based on time and roles
 

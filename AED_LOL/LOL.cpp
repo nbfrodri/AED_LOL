@@ -9,7 +9,7 @@ LOL::LOL()
 	// Initialize rankQueues for each rank
 	rankQueues.resize(10);
 	// Initialize roleQueues for each rank (10 ranks)
-roleQueues.resize(10);
+	roleQueues.resize(10);
 	// Initialize matchQueues for each rank (10 ranks)
 	matchQueues.resize(10);
 }
@@ -27,6 +27,7 @@ void LOL::displayTopPlayersByWinRateWithMinMatch(int minMatch, int top) const {
 	}
 	
 	// Sort filtered players by win rate in descending order
+	// Parámetros de sort: begin, end, función de comparación
 	std::sort(filteredPlayers.begin(), filteredPlayers.end(), [](const Player& a, const Player& b) {
 		return a.getWinRate() > b.getWinRate();
 	});
@@ -48,6 +49,7 @@ void LOL::displayTopPlayersByWinRateWithMinMatch(int minMatch, int top) const {
 
 void LOL::displayTopPlayersByELO(int top) const {
 	std::vector<Player> sortedPlayers = players;
+	// Parámetros de sort: begin, end, función de comparación
 	std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](const Player& a, const Player& b) {
 		return a.getElo() > b.getElo(); // Sort in descending order of ELO
 	});
@@ -64,159 +66,71 @@ void LOL::displayTopPlayersByELO(int top) const {
 	std::cout << "========================================\n\n";
 }
 
-void LOL::displayAllPlayersByELO() const {
-	std::vector<Player> sortedPlayers = players;
-	std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](const Player& a, const Player& b) {
-		return a.getElo() > b.getElo(); // Sort in descending order of ELO
-	});
-	for (const auto& player : sortedPlayers)
+void LOL::displayTopPlayersByRoleAndWinRate(char role, int minMatch, int top) const
+{
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players who have the specified role and at least minMatch played
+	for (const auto& player : players)
 	{
+		if ((player.getPrimaryRole() == role || player.getSecondaryRole() == role) &&
+			player.getTotalMatches() >= minMatch)
+		{
+			filteredPlayers.push_back(player);
+		}
+	}
+	
+	// Sort filtered players by win rate in descending order
+	std::sort(filteredPlayers.begin(), filteredPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getWinRate() > b.getWinRate();
+	});
+	
+	std::cout << "\n========================================\n";
+	std::cout << "TOP " << top << " PLAYERS BY ROLE " << role << " AND WIN RATE (MIN " << minMatch << " MATCHES)\n";
+	std::cout << "========================================\n";
+	
+	for (int i = 0; i < top && i < filteredPlayers.size(); ++i)
+	{
+		const auto& player = filteredPlayers[i];
+		std::cout << (i + 1) << ". ";
 		player.displayInfo();
 		std::cout << "-----------------------\n";
 	}
+	
+	std::cout << "========================================\n\n";
 }
 
-void LOL::displayPlayersByRankAndRole(const std::string& rank, char role) const
+void LOL::displayTopPlayersByRoleAndELO(char role, int top) const
 {
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players who have the specified role
 	for (const auto& player : players)
 	{
-		if (player.getRank() == rank && (player.getPrimaryRole() == role || player.getSecondaryRole() == role))
+		if (player.getPrimaryRole() == role || player.getSecondaryRole() == role)
 		{
-			player.displayInfo();
-			std::cout << "-----------------------\n";
-		}
-	}
-}
-
-void LOL::displayRankQueue(std::string& rank) const
-{
-	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
-	auto it = std::find(ranks.begin(), ranks.end(), rank);
-	if (it != ranks.end())
-	{
-		int index = std::distance(ranks.begin(), it);
-		if (index < rankQueues.size())
-		{
-			std::priority_queue<Player> tempQueue = rankQueues[index]; // Copiar la cola para no modificar la original
-			while (!tempQueue.empty())
-			{
-				const Player& player = tempQueue.top();
-				player.displayInfo();
-				std::cout << "-----------------------\n";
-				tempQueue.pop();
-			}
-		}
-		else
-		{
-			std::cout << "No players in the " << rank << " queue.\n";
-		}
-	}
-	else
-	{
-		std::cout << "Invalid rank: " << rank << std::endl;
-	}
-}
-
-void LOL::displayRoleQueue(const std::string& rank, char role, bool isPrimary) const
-{
-	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
-	auto it = std::find(ranks.begin(), ranks.end(), rank);
-	if (it != ranks.end())
-	{
-		int index = std::distance(ranks.begin(), it);
-		if (index < roleQueues.size())
-		{
-			std::cout << "Role Queue for Rank: " << rank << "\n";
-			roleQueues[index].displayRoleQueue(role, isPrimary);
-		}
-		else
-		{
-			std::cout << "No role queues found for rank: " << rank << std::endl;
-		}
-	}
-	else
-	{
-		std::cout << "Invalid rank: " << rank << std::endl;
-	}
-}
-
-void LOL::displayMatchesForRank(const std::string& rank) const
-{
-	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
-	auto it = std::find(ranks.begin(), ranks.end(), rank);
-	if (it != ranks.end())
-	{
-		int index = std::distance(ranks.begin(), it);
-		if (index < matchQueues.size())
-		{
-			std::cout << "\n========================================\n";
-			std::cout << "        MATCHES FOR RANK: " << rank << "\n";
-			std::cout << "========================================\n";
-			std::cout << "Number of matches: " << matchQueues[index].size() << "\n\n";
-			
-			if (matchQueues[index].empty())
-			{
-				std::cout << "No matches found for this rank.\n";
-				std::cout << "========================================\n\n";
-				return;
-			}
-			
-			// Create a copy of the queue to iterate through it
-			std::queue<Match> tempQueue = matchQueues[index];
-			int matchNumber = 1;
-			
-			while (!tempQueue.empty())
-			{
-				const Match& match = tempQueue.front();
-				std::cout << "MATCH #" << matchNumber << ":\n";
-				displayMatchInfo(match);
-				tempQueue.pop();
-				matchNumber++;
-			}
-			
-			std::cout << "========================================\n";
-			std::cout << "End of matches for " << rank << " rank\n";
-			std::cout << "========================================\n\n";
-		}
-		else
-		{
-			std::cout << "No matches found for rank: " << rank << std::endl;
-		}
-	}
-	else
-	{
-		std::cout << "Invalid rank: " << rank << std::endl;
-	}
-}
-
-void LOL::displayMatchInfo(const Match& match) const
-{
-	match.showMatchInfo();
-}
-
-void LOL::displaySampleMatchFromIteration() const
-{
-	std::cout << "\n=== SAMPLE MATCH FROM THIS ITERATION ===\n";
-	
-	// Find the first non-empty match queue and display one match
-	for (size_t rankIndex = 0; rankIndex < matchQueues.size(); ++rankIndex)
-	{
-		if (!matchQueues[rankIndex].empty())
-		{
-			// Get rank name
-			static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
-			
-			std::queue<Match> tempQueue = matchQueues[rankIndex];
-			const Match& sampleMatch = tempQueue.front();
-			
-			std::cout << "Sample from " << ranks[rankIndex] << " rank:\n";
-			displayMatchInfo(sampleMatch);
-			return;
+			filteredPlayers.push_back(player);
 		}
 	}
 	
-	std::cout << "No matches found in this iteration.\n";
-	std::cout << "=========================================\n\n";
+	// Sort filtered players by ELO in descending order
+	std::sort(filteredPlayers.begin(), filteredPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getElo() > b.getElo();
+	});
+	
+	std::cout << "\n========================================\n";
+	std::cout << "TOP " << top << " PLAYERS BY ROLE " << role << " AND ELO\n";
+	std::cout << "========================================\n";
+	
+	for (int i = 0; i < top && i < filteredPlayers.size(); ++i)
+	{
+		const auto& player = filteredPlayers[i];
+		std::cout << (i + 1) << ". ";
+		player.displayInfo();
+		std::cout << "-----------------------\n";
+	}
+	
+	std::cout << "========================================\n\n";
 }
 
 void LOL::displayPlayerMatchHistory(int playerId) const
@@ -232,50 +146,6 @@ void LOL::displayPlayerMatchHistory(int playerId) const
 	std::cout << "Player with ID " << playerId << " not found.\n";
 }
 
-void LOL::displayPlayersWithHighestWinRate(int topCount) const
-{
-	// Create a copy of players vector for sorting
-	std::vector<Player> sortedPlayers = players;
-	
-	// Sort by win rate (descending) and then by total matches (minimum 1 match played)
-	std::sort(sortedPlayers.begin(), sortedPlayers.end(), 
-		[](const Player& a, const Player& b) {
-			// Players with no matches go to the end
-			if (a.getTotalMatches() == 0 && b.getTotalMatches() == 0) return false;
-			if (a.getTotalMatches() == 0) return false;
-			if (b.getTotalMatches() == 0) return true;
-			
-			// Sort by win rate (higher first)
-			return a.getWinRate() > b.getWinRate();
-		});
-	
-	std::cout << "\n========================================\n";
-	std::cout << "TOP " << topCount << " PLAYERS BY WIN RATE\n";
-	std::cout << "========================================\n";
-	
-	int count = 0;
-	for (const auto& player : sortedPlayers)
-	{
-		if (count >= topCount) break;
-		if (player.getTotalMatches() == 0) continue; // Skip players with no matches
-		
-		std::cout << (count + 1) << ". " << player.getUsername() 
-				  << " | Win Rate: " << std::fixed << std::setprecision(1) << player.getWinRate() << "%"
-				  << " | Matches: " << player.getTotalMatches()
-				  << " | Wins: " << player.getTotalWins()
-				  << " | Rank: " << player.getRank()
-				  << " | ELO: " << player.getElo() << "\n";
-		count++;
-	}
-	
-	if (count == 0)
-	{
-		std::cout << "No players have played any matches yet.\n";
-	}
-	
-	std::cout << "========================================\n\n";
-}
-
 void LOL::assignRandomQueueTimes()
 {
 	std::srand(static_cast<unsigned int>(std::time(0))); // Seed the random number generator
@@ -287,7 +157,7 @@ void LOL::assignRandomQueueTimes()
 		player.setTimeQueued(randomTime);
 	}
 	
-	std::cout << "Random queue times assigned to all players (1.0 - 400.0 seconds).\n";
+	std::cout << "Random queue times assigned to all players (1 to 400 seconds).\n";
 }
 
 void LOL::simulateMatchmakingSeason(int iterations)
@@ -343,6 +213,7 @@ void LOL::simulateMatchmakingSeason(int iterations)
 	std::cout << "\n=== SIMULATION COMPLETED ===\n";
 	std::cout << "All " << iterations << " iteration(s) completed successfully!\n";
 	std::cout << "Final player data saved to file.\n\n";
+	system("pause");
 }
 
 void LOL::clearAllQueues()
@@ -529,7 +400,7 @@ void LOL::processAllMatches()
 		if (!matchQueue.empty())
 		{
 			static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
-			std::string rankName = (rankIndex < ranks.size()) ? ranks[rankIndex] : "Unknown";
+			std::string rankName = (rankIndex < ranks.size()) ? ranks[rankIndex] : "Unknown"; // Get the according rank name based on index
 			
 			std::cout << "Processing " << matchQueue.size() << " matches for " << rankName << " rank...\n";
 			
@@ -542,9 +413,7 @@ void LOL::processAllMatches()
 			{
 				Match match = matchQueue.front();
 				matchQueue.pop();
-				
-				std::cout << "  Processing match " << match.getMatchId() << " with " << match.getPlayers().size() << " players\n";
-				
+								
 				// Process the match results
 				match.processMatchResults();
 				rankMatches++;
@@ -561,7 +430,7 @@ void LOL::processAllMatches()
 				tempQueue.pop();
 			}
 			
-			std::cout << "  Processed " << rankMatches << " matches for " << rankName << "\n\n";
+			std::cout << "Processed " << rankMatches << " matches for " << rankName << "\n\n";
 		}
 	}
 	
@@ -682,144 +551,11 @@ std::pair<char, char> LOL::getTwoLeastPopularRoles() const
 
 void LOL::assignRolePriorities()
 {
-	auto [role1, role2] = getTwoLeastPopularRoles();
+	auto [role1, role2] = getTwoLeastPopularRoles(); // Get the two least popular roles and save them in a pair
+	// Assign to class members
 	role1Priority = role1;
 	role2Priority = role2;
-		
+	
+	// Update all players' priorities based on new role priorities
 	updateAllPlayersPriorities();
 }
-
-// Count methods
-
-int LOL::countAllPlayers() const
-{
-	return players.size();
-}
-
-int LOL::countPlayersByRank(const std::string& rank) const
-{
-	int count = 0;
-	for (const auto& player : players)
-	{
-		if (player.getRank() == rank)
-		{
-			count++;
-		}
-	}
-	return count;
-}
-
-int LOL::countPlayersByRole(char role) const
-{
-	int count = 0;
-	for (const auto& player : players)
-	{
-		if (player.getPrimaryRole() == role || player.getSecondaryRole() == role)
-		{
-			count++;
-		}
-	}
-	return count;
-}
-
-int LOL::countPlayersByRankAndRole(const std::string& rank, char role) const
-{
-	int count = 0;
-	for (const auto& player : players)
-	{
-		if (player.getRank() == rank && (player.getPrimaryRole() == role || player.getSecondaryRole() == role))
-		{
-			count++;
-		}
-	}
-	return count;
-}
-
-// Show methods
-
-void LOL::displayAllPlayers() const
-{
-	for (const auto& player : players)
-	{
-		player.displayInfo();
-		std::cout << "-----------------------\n";
-	}
-}
-
-void LOL::displayPlayersByRank(const std::string& rank) const
-{
-	for (const auto& player : players)
-	{
-		if (player.getRank() == rank)
-		{
-			player.displayInfo();
-			std::cout << "-----------------------\n";
-		}
-	}
-}
-
-void LOL::displayPlayersByRole(char role) const
-{
-	for (const auto& player : players)
-	{
-		if (player.getPrimaryRole() == role || player.getSecondaryRole() == role)
-		{
-			player.displayInfo();
-			std::cout << "-----------------------\n";
-		}
-	}
-}
-
-void LOL::displayRoleDistribution() const
-{
-	std::cout << "\n=== ROLE DISTRIBUTION BY RANK ===\n";
-	static const std::vector<std::string> ranks = { "Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond", "Master", "Grandmaster", "Challenger" };
-	std::vector<char> roles = {'T', 'J', 'M', 'A', 'S'};
-	
-	bool hasAnyPlayers = false;
-	
-	for (size_t rankIndex = 0; rankIndex < ranks.size() && rankIndex < roleQueues.size(); ++rankIndex)
-	{
-		int totalPlayersInRank = roleQueues[rankIndex].getTotalPlayers();
-		
-		if (totalPlayersInRank > 0)
-		{
-			hasAnyPlayers = true;
-			std::cout << ranks[rankIndex] << " rank (Total: " << totalPlayersInRank << " players):\n";
-			
-			for (char role : roles)
-			{
-				int count = roleQueues[rankIndex].getPlayersCountForRole(role);
-				std::cout << "  Role " << role << ": " << count << " players";
-				if (count >= 2) 
-				{
-					std::cout << " (sufficient for matches)";
-				}
-				else if (count == 1)
-				{
-					std::cout << " (needs 1 more)";
-				}
-				else
-				{
-					std::cout << " (needs 2 more)";
-				}
-				std::cout << "\n";
-			}
-			std::cout << "\n";
-		}
-		else
-		{
-			std::cout << ranks[rankIndex] << " rank: No players\n";
-		}
-	}
-	
-	if (!hasAnyPlayers)
-	{
-		std::cout << "NO PLAYERS FOUND IN ANY ROLE QUEUES!\n";
-		std::cout << "This suggests players are not being added to role queues properly.\n";
-	}
-	
-	std::cout << "==================================\n";
-}
-
-// File operations// File operations

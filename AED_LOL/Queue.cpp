@@ -177,7 +177,6 @@ int Queue::getTotalPlayers() const
 	for (size_t i = 0; i < 5; ++i)
 	{
 		total += mainRolesQueue[i].size();
-		// Don't count secondary queue to avoid double counting
 	}
 	return total;
 }
