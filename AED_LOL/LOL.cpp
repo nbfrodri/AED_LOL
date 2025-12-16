@@ -14,6 +14,70 @@ LOL::LOL()
 	matchQueues.resize(10);
 }
 
+void LOL::displayTopPlayersByRankAndELO(const std::string& rank, int top) const {
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players by rank
+	for (const auto& player : players)
+	{
+		if (player.getRank() == rank)
+		{
+			filteredPlayers.push_back(player);
+		}
+	}
+	
+	// Sort filtered players by ELO in descending order
+	std::sort(filteredPlayers.begin(), filteredPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getElo() > b.getElo();
+	});
+	
+	std::cout << "\n========================================\n";
+	std::cout << "TOP " << top << " PLAYERS IN RANK " << rank << " BY ELO\n";
+	std::cout << "========================================\n";
+	
+	for (int i = 0; i < top && i < filteredPlayers.size(); ++i)
+	{
+		const auto& player = filteredPlayers[i];
+		std::cout << (i + 1) << ". ";
+		player.displayInfo();
+		std::cout << "-----------------------\n";
+	}
+	
+	std::cout << "========================================\n\n";
+}
+
+void LOL::displayTopPlayersByRankAndWinRate(const std::string& rank, int minMatch, int top) const {
+	std::vector<Player> filteredPlayers;
+	
+	// Filter players by rank and minimum matches played
+	for (const auto& player : players)
+	{
+		if (player.getRank() == rank && player.getTotalMatches() >= minMatch)
+		{
+			filteredPlayers.push_back(player);
+		}
+	}
+	
+	// Sort filtered players by win rate in descending order
+	std::sort(filteredPlayers.begin(), filteredPlayers.end(), [](const Player& a, const Player& b) {
+		return a.getWinRate() > b.getWinRate();
+	});
+	
+	std::cout << "\n========================================\n";
+	std::cout << "TOP " << top << " PLAYERS IN RANK " << rank << " BY WIN RATE (MIN " << minMatch << " MATCHES)\n";
+	std::cout << "========================================\n";
+	
+	for (int i = 0; i < top && i < filteredPlayers.size(); ++i)
+	{
+		const auto& player = filteredPlayers[i];
+		std::cout << (i + 1) << ". ";
+		player.displayInfo();
+		std::cout << "-----------------------\n";
+	}
+	
+	std::cout << "========================================\n\n";
+}
+
 void LOL::displayTopPlayersByWinRateWithMinMatch(int minMatch, int top) const {
 	std::vector<Player> filteredPlayers;
 	

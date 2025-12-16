@@ -71,6 +71,8 @@ public:
 	void displayTopPlayersByELO(int top) const;
 	void displayTopPlayersByRoleAndWinRate(char role, int minMatch, int top) const;
 	void displayTopPlayersByRoleAndELO(char role, int top) const;
+	void displayTopPlayersByRankAndWinRate(const std::string& rank, int minMatch, int top) const;
+	void displayTopPlayersByRankAndELO(const std::string& rank, int top) const;
 	
 	// Display player match history
 	void displayPlayerMatchHistory(int playerId) const; // Display match history for a specific player
