@@ -20,6 +20,15 @@ private:
 	char role2Priority;
 	std::vector<Queue> roleQueues; // Vector of Queue objects for each rank (10 ranks)
 	std::vector<std::queue<Match>> matchQueues; // Queues for each rank to store the matches once they are fully created
+
+	// Helper methods
+
+	// Métodos auxiliares para createMatchForRank
+	int getRankIndex(const std::string& rank); // Get index of rank in the ranks vector
+	Match createSingleMatch(const std::string& rank, Queue& roleQueue); // Create a single match for a specific rank
+	bool fillRoleInMatch(Match& match, char role, Queue& roleQueue, std::vector<int>& playersAddedToMatch); // Fill a specific role in the match
+	Player* getValidPlayerForRole(char role, Queue& roleQueue, const std::vector<int>& playersAlreadyInMatch); // Get a valid player for a specific role, avoiding players already in the match
+	Player* findOriginalPlayer(int playerId); // Find the original player object by ID
 public:
 	LOL();
 
